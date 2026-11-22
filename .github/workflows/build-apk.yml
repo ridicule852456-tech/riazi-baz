@@ -1,0 +1,45 @@
+
+name: Build Math Yaar APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract project
+        run: |
+          unzip -o math_yaar_android_source.zip -d source
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Create Android project
+        run: |
+          flutter create --platforms=android --org ir.mathyaar app
+
+      - name: Copy project files
+        run: |
+          cp -r source/lib app/lib
+          cp source/pubspec.yaml app/pubspec.yaml
+
+      - name: Build APK
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Math-Yaar-APK
+          path: app/build/app/outputs/flutter-apk/app-release.apk
